@@ -76,19 +76,16 @@ class User < ApplicationRecord
   # Defines a proto-feed.
   # See "Following users" for the full implementation.
   def feed
-    Micropost.where("user_id = ?", id)
+    following_ids = "SELECT followed_id FROM relationships
+                     WHERE  follower_id = :user_id"
+    Micropost.where("user_id IN (#{following_ids})
+                     OR user_id = :user_id", user_id: id)
   end
 
 
    # Follows a user.
   def follow(other_user)
     following << other_user
-  end
-
-  # Returns a user's status feed.
-  def feed
-    Micropost.where("user_id IN (:following_ids) OR user_id = :user_id",
-                    following_ids: following_ids, user_id: id)
   end
 
   # Unfollows a user.
